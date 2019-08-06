@@ -25,8 +25,11 @@ namespace WordManage
             foreach (string file in files)//遍历所有文件
             {
                 FileInfo finfo = new FileInfo(file);//创建文件对象
-                listView1.Items.Add(finfo.Name);//获取文件名并显示
-                listView1.Items[listView1.Items.Count - 1].SubItems.Add(finfo.DirectoryName);//获取路径并显示
+                if (finfo.Extension == ".doc" || finfo.Extension == ".docx")//判断是否为Word文件
+                {
+                    listView1.Items.Add(finfo.Name);//获取文件名并显示
+                    listView1.Items[listView1.Items.Count - 1].SubItems.Add(finfo.DirectoryName);//获取路径并显示
+                }
             }
         }
         #endregion
@@ -53,6 +56,7 @@ namespace WordManage
                 textBox2.Text = openfile.FileName;//显示打开的文件名
                 StreamReader SReader = new StreamReader(textBox2.Text, Encoding.UTF8);//以UTF8编码方式读取文件
                 richTextBox1.Text = SReader.ReadToEnd();//读取所有文件并显示在文本框中
+                SReader.Close();
             }
         }
 
@@ -64,23 +68,21 @@ namespace WordManage
             ArrayList list = new ArrayList();//创建List集合，用来存储新文件名
             foreach (string item in richTextBox1.Lines)//遍历文本框中的所有行
                 list.Add(item);//将所有行添加到集合中进行存储
-            foreach(string str in list)//遍历存储新文件名的集合
+            if (listView1.Items.Count == list.Count) //判断要重命名的文件与模板中的新文件名行数一致
             {
-                try
+                foreach (string str in list)//遍历存储新文件名的集合
                 {
                     //依次对遍历到的文件进行重命名
                     File.Copy(files[i], Path.GetDirectoryName(files[i]).TrimEnd(new char[] { '\\' }) + "\\" + str + Path.GetExtension(files[i]), true);
                     File.Delete(files[i]);//删除原有文件
                     i++;//遍历文件的索引加1
                 }
-                catch//捕获异常（防止有模板中新文件名个数与要操作的Word文档个数不同的情况）
-                {
-                    MessageBox.Show("请重新选择文件路径！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+                ShowFile(textBox1.Text);//显示重命名完成后的所有文件
+                //成功提示
+                MessageBox.Show("文件重命名整理完成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            ShowFile(textBox1.Text);//显示重命名完成后的所有文件
-            //成功提示
-            MessageBox.Show("文件重命名整理完成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show("文件个数与模板文件中的行数不一致，请重新确认！", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         //打开重命名后的路径进行查看

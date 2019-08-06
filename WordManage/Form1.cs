@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Microsoft.Office.Interop.Word;
 using System.IO;
 using System.Threading;
+using System.Diagnostics;
 
 /*
  * Word文档拆分工具
@@ -19,7 +20,7 @@ namespace WordManage
             CheckForIllegalCrossThreadCalls = false;//为了能够跨线程调用控件
         }
 
-        int flag = 0;//标识按书签拆分还是分页符拆分，默认按书签拆分
+        int flag = 0;//标识按书签拆分还是分页符拆分，默认0，表示按书签拆分
         ApplicationClass word = new ApplicationClass();//创建Word文档对象
 
         #region 读取Word文档
@@ -71,7 +72,7 @@ namespace WordManage
             {
                 object index = i;//定义一个标识，用来作为书签索引，书签索引从1开始
                 Bookmark bm = doc.Bookmarks.get_Item(ref index);//获取遍历到的书签
-                if (bm.Name == "书签"+Convert.ToString(titleIndex + 1))//判断书签的名字是否为指定格式
+                if (bm.Name == "书签" + (titleIndex + 1).ToString("00"))//判断书签的名字是否为指定格式
                 {
                     result[titleIndex, 0] = bm.Start;//记录书签的开始位置
                     result[titleIndex, 1] = bm.End;//记录书签的结束位置
@@ -123,7 +124,7 @@ namespace WordManage
                             Document docto = CreateDocument(textBox1.Text);//调用自定义方法创建一个新的Word文档
                             docto.Content.Paste();//将复制的内容粘贴到新创建的Word文档中
                             //设置Word文档的保存路径及文件名（以编号命名）
-                            object filename = savePath + "\\" + i.ToString() + ".docx";
+                            object filename = savePath + "\\" + i.ToString("00") + ".docx";
                             //保存Word文档
                             docto.SaveAs(ref filename, ref missing, ref missing, ref missing, ref missing,
                                 ref missing, ref missing, ref missing, ref missing, ref missing, ref missing,
@@ -161,7 +162,7 @@ namespace WordManage
                                             //获取段落分页并移除，保存新文档到文件夹  
                                             int i = para.ChildObjects.IndexOf(parobj);
                                             section.Body.LastParagraph.ChildObjects.RemoveAt(i);
-                                            newWord.SaveToFile(savePath + "\\" + index + ".docx", Spire.Doc.FileFormat.Docx);
+                                            newWord.SaveToFile(savePath + "\\" + index.ToString("00") + ".docx", Spire.Doc.FileFormat.Docx);
                                             index++;
                                             //实例化Document类对象，添加section，将原文档段落的子对象复制到新文档  
                                             newWord = new Spire.Doc.Document(textBox1.Text);
@@ -184,29 +185,25 @@ namespace WordManage
                                     }
                                 }
                                 //若对象为表格，则添加表格对象到新文档  
-                                if (obj is Table)
+                                if (obj is Spire.Doc.Table)
                                 {
                                     section.Body.ChildObjects.Add(obj.Clone());
                                 }
                             }
                         }
                         //拆分后的新文档保存至指定文档  
-                        newWord.SaveToFile(savePath + "\\" + index + ".docx", Spire.Doc.FileFormat.Docx);
+                        newWord.SaveToFile(savePath + "\\" + index.ToString("00") + ".docx", Spire.Doc.FileFormat.Docx);
                         foreach (string file in Directory.GetFiles(savePath))//遍历拆分完的所有Word文档
                             deletePagesInFile(file, 1, 1);//删除第一页
                         break;
                         #endregion
                 }
             }
-            catch (Exception ex)//捕获可能出现的异常信息
-            {
-                //如果有异常，弹出警告对话框，并显示具体的异常信息
-                MessageBox.Show(ex.Message, "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            catch(Exception ex) { MessageBox.Show(ex.Message); }//异常跳过
         }
         #endregion
 
-        #region 删除指定页（因为使用Spire插件、按照分页符拆分后的Word中，第一页为分页，而且有水印信息）
+        #region 删除Word中指定范围的页（因为使用Spire插件、按照分页符拆分后的Word中，第一页为分页，而且有水印信息）
         static object oMissing = System.Reflection.Missing.Value;//作为方法传参中的缺省值
         /// <summary>
         /// 删除Word中的指定页
@@ -307,6 +304,13 @@ namespace WordManage
                     }
                     //成功提示
                     MessageBox.Show("拆分成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try
+                    {
+                        //关闭遗留的Word进程
+                        Process[] MyProcess = Process.GetProcessesByName("Microsoft Word");
+                        MyProcess[0].Kill();
+                    }
+                    catch { }
                 });
             }
         }
@@ -354,18 +358,33 @@ namespace WordManage
             flag = radioButton1.Checked ? 0 : 1;//标识按书签拆分还是分页符拆分
         }
 
-        //窗体关闭时需要执行的操作
+        //退出当前应用程序
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (word != null)//判断Word对象是否不为空
-                word.Quit();//退出Word
-            System.Windows.Forms.Application.ExitThread();//关闭当前应用程序
+            System.Windows.Forms.Application.Exit();//关闭当前应用程序
         }
 
         //“整理命名”超链接单击事件
         private void LinkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             new Form2().ShowDialog();//打开文件重命名窗体
+        }
+
+        //关闭遗留的Word进程
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            foreach (Process p in Process.GetProcesses()) //遍历所有进程
+            {
+                if (p.ProcessName.ToUpper().Contains("WINWORD"))//判断是否为Word进程
+                {
+                    try
+                    {
+                        p.Kill();//关闭Word进程
+                        p.WaitForExit();//等待进程退出
+                    }
+                    catch { }//异常通过
+                }
+            }
         }
     }
 }

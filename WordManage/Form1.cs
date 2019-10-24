@@ -293,6 +293,7 @@ namespace WordManage
                 ThreadPool.QueueUserWorkItem(//开始线程池，防止窗体出现“假死”状态
                 (pp) =>//使用lambda表达式
                 {
+                    button1.Enabled = false;
                     for (int i = 0; i < count; i++)//遍历文件
                     {
                         FileInfo file = new FileInfo(files[i]);//使用遍历到的文件创建文件对象
@@ -304,6 +305,7 @@ namespace WordManage
                     }
                     //成功提示
                     MessageBox.Show("拆分成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    button1.Enabled = true;
                     try
                     {
                         //关闭遗留的Word进程

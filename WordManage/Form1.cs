@@ -193,6 +193,10 @@ namespace WordManage
                         }
                         //拆分后的新文档保存至指定文档  
                         newWord.SaveToFile(savePath + "\\" + index.ToString("00") + ".docx", Spire.Doc.FileFormat.Docx);
+                        original.Close();
+                        original.Dispose();
+                        newWord.Close();
+                        newWord.Dispose();
                         foreach (string file in Directory.GetFiles(savePath))//遍历拆分完的所有Word文档
                             deletePagesInFile(file, 1, 1);//删除第一页
                         break;

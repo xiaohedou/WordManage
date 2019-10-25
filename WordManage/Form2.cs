@@ -100,6 +100,7 @@ namespace WordManage
         ArrayList listDoc=new ArrayList(), listTxt = new ArrayList();
         private void Button5_Click(object sender, EventArgs e)
         {
+            listDoc.Clear();
             FolderBrowserDialog dir = new FolderBrowserDialog();//创建浏览文件对话框
             if (dir.ShowDialog() == DialogResult.OK)//判断是否选择了路径
             {
@@ -113,6 +114,7 @@ namespace WordManage
 
         private void Button6_Click(object sender, EventArgs e)
         {
+            listTxt.Clear();
             FolderBrowserDialog dir = new FolderBrowserDialog();//创建浏览文件对话框
             if (dir.ShowDialog() == DialogResult.OK)//判断是否选择了路径
             {
@@ -132,22 +134,23 @@ namespace WordManage
                 {
                     if (listTxt.Contains(str))
                     {
-                        ThreadPool.QueueUserWorkItem(//开始线程池，防止窗体出现“假死”状态
-                            (pp) =>//使用lambda表达式
-                            {
-                                int i = 0;//定义一个标识，用来作为遍历时的文件索引
-                                StreamReader SReader = new StreamReader(textBox4.Text.TrimEnd('\\') + "\\" + str + ".txt", Encoding.UTF8);//以UTF8编码方式读取文件
-                                string strLine = string.Empty; //记录每次读到的行
-                                while ((strLine = SReader.ReadLine()) != null) //循环按行读取内容
-                                {
-                                    string[] files = Directory.GetFiles(textBox3.Text.TrimEnd('\\') + "\\" + str, "*.doc");//获取所有需要重命名的Word文件
-                                    //依次对遍历到的文件进行重命名
-                                    File.Copy(files[i], Path.GetDirectoryName(files[i]).TrimEnd(new char[] { '\\' }) + "\\" + strLine + Path.GetExtension(files[i]), true);
-                                    File.Delete(files[i]);//删除原有文件
-                                    i++;
-                                }
-                                SReader.Close(); //关闭读取器
-                            });
+                        button8.Enabled = false;
+                        int i = 0;//定义一个标识，用来作为遍历时的文件索引
+                        StreamReader SReader = new StreamReader(textBox4.Text.TrimEnd('\\') + "\\" + str + ".txt", Encoding.UTF8);//以UTF8编码方式读取文件
+                        string[] files = Directory.GetFiles(textBox3.Text.TrimEnd('\\') + "\\" + str, "*.doc");//获取所有需要重命名的Word文件
+                        Array.Sort(files);
+                        string strLine = string.Empty; //记录每次读到的行
+                        while ((strLine = SReader.ReadLine()) != null) //循环按行读取内容
+                        {
+                            //依次对遍历到的文件进行重命名
+                            File.Copy(files[i], Path.GetDirectoryName(files[i]).TrimEnd(new char[] { '\\' }) + "\\" + strLine + Path.GetExtension(files[i]), true);
+                            File.Delete(files[i]);//删除原有文件
+                            i++;
+                        }
+                        SReader.Close(); //关闭读取器
+                        button8.Enabled = true;
+                        //成功提示
+                        MessageBox.Show("文件重命名整理完成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }

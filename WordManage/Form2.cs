@@ -130,11 +130,11 @@ namespace WordManage
 
             if (listDoc != null && listTxt != null)
             {
+                button8.Enabled = false;
                 foreach (string str in listDoc)
                 {
                     if (listTxt.Contains(str))
                     {
-                        button8.Enabled = false;
                         int i = 0;//定义一个标识，用来作为遍历时的文件索引
                         StreamReader SReader = new StreamReader(textBox4.Text.TrimEnd('\\') + "\\" + str + ".txt", Encoding.UTF8);//以UTF8编码方式读取文件
                         string[] files = Directory.GetFiles(textBox3.Text.TrimEnd('\\') + "\\" + str, "*.doc");//获取所有需要重命名的Word文件
@@ -148,11 +148,11 @@ namespace WordManage
                             i++;
                         }
                         SReader.Close(); //关闭读取器
-                        button8.Enabled = true;
-                        //成功提示
-                        MessageBox.Show("文件重命名整理完成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
+                button8.Enabled = true;
+                //成功提示
+                MessageBox.Show("文件重命名整理完成！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 

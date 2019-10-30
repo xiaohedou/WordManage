@@ -20,7 +20,7 @@ namespace WordManage
             CheckForIllegalCrossThreadCalls = false;//为了能够跨线程调用控件
         }
 
-        int flag = 0;//标识按书签拆分还是分页符拆分，默认0，表示按书签拆分
+        int flag = 1;//标识按书签拆分还是分页符拆分，默认1，表示按分页符拆分
         ApplicationClass word = new ApplicationClass();//创建Word文档对象
 
         #region 读取Word文档

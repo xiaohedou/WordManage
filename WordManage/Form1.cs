@@ -124,7 +124,7 @@ namespace WordManage
                             Document docto = CreateDocument(textBox1.Text);//调用自定义方法创建一个新的Word文档
                             docto.Content.Paste();//将复制的内容粘贴到新创建的Word文档中
                             //设置Word文档的保存路径及文件名（以编号命名）
-                            object filename = savePath + "\\" + i.ToString("00") + ".docx";
+                            object filename = savePath + "\\" + i.ToString("000") + ".docx";
                             //保存Word文档
                             docto.SaveAs(ref filename, ref missing, ref missing, ref missing, ref missing,
                                 ref missing, ref missing, ref missing, ref missing, ref missing, ref missing,
@@ -162,7 +162,7 @@ namespace WordManage
                                             //获取段落分页并移除，保存新文档到文件夹  
                                             int i = para.ChildObjects.IndexOf(parobj);
                                             section.Body.LastParagraph.ChildObjects.RemoveAt(i);
-                                            newWord.SaveToFile(savePath + "\\" + index.ToString("00") + ".docx", Spire.Doc.FileFormat.Docx);
+                                            newWord.SaveToFile(savePath + "\\" + index.ToString("000") + ".docx", Spire.Doc.FileFormat.Docx);
                                             index++;
                                             //实例化Document类对象，添加section，将原文档段落的子对象复制到新文档  
                                             newWord = new Spire.Doc.Document(textBox1.Text);
